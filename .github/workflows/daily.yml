@@ -1,0 +1,28 @@
+name: daily
+on:
+  schedule:
+    - cron: "23 6 * * *"
+    - cron: "41 15 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  log:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: commit
+        run: |
+          git config user.name "David Kovel"
+          git config user.email "dkovel7@gmail.com"
+          mkdir -p logs
+          n=$(( RANDOM % 3 + 1 ))
+          for i in $(seq 1 $n); do
+            f="logs/$(date -u +%Y-%m).md"
+            echo "- $(date -u '+%Y-%m-%d %H:%M:%S') UTC — entry $i/$n" >> "$f"
+            git add "$f"
+            git commit -q -m "log: $(date -u +%F) #$i"
+            sleep 2
+          done
+          git pull -q --rebase
+          git push -q
